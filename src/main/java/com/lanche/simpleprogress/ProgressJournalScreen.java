@@ -15,7 +15,8 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
     private static final int GUI_WIDTH = 500;
     private static final int GUI_HEIGHT = 330;
 
-    private List<ProgressManager.CustomProgress> progressList = new ArrayList<>();
+    private List<ProgressManager.CustomProgress> allProgresses = new ArrayList<>();
+    private List<ProgressManager.CustomProgress> displayProgresses = new ArrayList<>();
     private ProgressManager.ProgressType selectedType = ProgressManager.ProgressType.KILL;
     private EditBox titleField;
     private EditBox targetField;
@@ -156,10 +157,69 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
 
     private void reloadProgressList() {
         if (minecraft != null && minecraft.player != null) {
-            progressList = ProgressManager.getProgresses(minecraft.player);
+            allProgresses = ProgressManager.getProgresses(minecraft.player);
+            updateDisplayProgresses();
             ProgressManager.PlayerStats stats = ProgressManager.getPlayerStats(minecraft.player);
-            stats.totalProgresses = progressList.size();
+            stats.totalProgresses = getAllProgressCount(allProgresses);
         }
+    }
+
+    // 递归获取所有进度数量（包括子进度）
+    private int getAllProgressCount(List<ProgressManager.CustomProgress> progresses) {
+        int count = progresses.size();
+        for (ProgressManager.CustomProgress progress : progresses) {
+            if (progress.subProgresses != null && !progress.subProgresses.isEmpty()) {
+                count += getAllProgressCount(progress.subProgresses);
+            }
+        }
+        return count;
+    }
+
+    private void updateDisplayProgresses() {
+        displayProgresses.clear();
+
+        if (showSubProgress && selectedParentId != null) {
+            // 显示指定父进度的直接子进度
+            ProgressManager.CustomProgress parentProgress = findProgressById(allProgresses, selectedParentId);
+            if (parentProgress != null && parentProgress.subProgresses != null) {
+                displayProgresses.addAll(parentProgress.subProgresses);
+            }
+        } else {
+            // 显示所有顶级进度（没有父进度的进度）
+            for (ProgressManager.CustomProgress progress : allProgresses) {
+                if (progress.parentId == null) {
+                    displayProgresses.add(progress);
+                }
+            }
+        }
+    }
+
+    // 递归查找进度
+    private ProgressManager.CustomProgress findProgressById(List<ProgressManager.CustomProgress> progresses, String id) {
+        for (ProgressManager.CustomProgress progress : progresses) {
+            if (progress.id.equals(id)) {
+                return progress;
+            }
+            if (progress.subProgresses != null && !progress.subProgresses.isEmpty()) {
+                ProgressManager.CustomProgress found = findProgressById(progress.subProgresses, id);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
+    }
+
+    // 获取所有子进度的平铺列表（用于统计）
+    private List<ProgressManager.CustomProgress> getAllSubProgressesFlat(ProgressManager.CustomProgress parent) {
+        List<ProgressManager.CustomProgress> allSubs = new ArrayList<>();
+        if (parent.subProgresses != null) {
+            for (ProgressManager.CustomProgress sub : parent.subProgresses) {
+                allSubs.add(sub);
+                allSubs.addAll(getAllSubProgressesFlat(sub));
+            }
+        }
+        return allSubs;
     }
 
     private void updateTargetFieldHint() {
@@ -256,7 +316,12 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
                 return;
             }
 
-            ProgressManager.CustomProgress parentProgress = progressList.get(selectedProgressIndex);
+            ProgressManager.CustomProgress parentProgress = getSelectedProgress();
+            if (parentProgress == null) {
+                minecraft.player.displayClientMessage(Component.literal("§c选择的父进度无效"), false);
+                return;
+            }
+
             ProgressManager.CustomProgress subProgress = new ProgressManager.CustomProgress();
             subProgress.title = title;
             subProgress.description = selectedType.getDisplayName() + " " + target;
@@ -288,15 +353,22 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
         }
     }
 
+    private ProgressManager.CustomProgress getSelectedProgress() {
+        if (selectedProgressIndex >= 0 && selectedProgressIndex < displayProgresses.size()) {
+            return displayProgresses.get(selectedProgressIndex);
+        }
+        return null;
+    }
+
     private void deleteSelectedProgress() {
-        if (minecraft != null && minecraft.player != null && selectedProgressIndex >= 0 && selectedProgressIndex < progressList.size()) {
-            ProgressManager.CustomProgress progress = progressList.get(selectedProgressIndex);
-            ProgressManager.removeProgress(minecraft.player, progress.id);
-            reloadProgressList();
-            selectedProgressIndex = -1;
-            minecraft.player.displayClientMessage(Component.literal("§c进度已删除"), false);
-        } else {
-            if (minecraft != null && minecraft.player != null) {
+        if (minecraft != null && minecraft.player != null) {
+            ProgressManager.CustomProgress selectedProgress = getSelectedProgress();
+            if (selectedProgress != null) {
+                ProgressManager.removeProgress(minecraft.player, selectedProgress.id);
+                reloadProgressList();
+                selectedProgressIndex = -1;
+                minecraft.player.displayClientMessage(Component.literal("§c进度已删除"), false);
+            } else {
                 minecraft.player.displayClientMessage(Component.literal("§c请先选择一个进度"), false);
             }
         }
@@ -308,21 +380,21 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             showSubProgress = false;
             selectedParentId = null;
             selectedProgressIndex = -1;
-            reloadProgressList();
+            updateDisplayProgresses();
             if (minecraft != null && minecraft.player != null) {
                 minecraft.player.displayClientMessage(Component.literal("§a显示全部进度"), false);
             }
         } else {
             // 切换到显示子进度
-            if (selectedProgressIndex != -1) {
-                ProgressManager.CustomProgress selectedProgress = progressList.get(selectedProgressIndex);
-
-                // 修复：直接检查选中的进度是否有子进度
+            ProgressManager.CustomProgress selectedProgress = getSelectedProgress();
+            if (selectedProgress != null) {
+                // 检查是否有子进度
                 boolean hasSubProgresses = selectedProgress.hasSubProgresses();
 
                 if (hasSubProgresses) {
                     showSubProgress = true;
                     selectedParentId = selectedProgress.id;
+                    updateDisplayProgresses();
                     scrollOffset = 0;
                     if (minecraft != null && minecraft.player != null) {
                         minecraft.player.displayClientMessage(Component.literal("§a显示子进度: " + selectedProgress.title), false);
@@ -338,8 +410,6 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
                 }
             }
         }
-
-        init();
     }
 
     private void showClearConfirmation() {
@@ -462,16 +532,15 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
     }
 
     private void renderProgressList(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        List<ProgressManager.CustomProgress> displayList = getDisplayProgressList();
         int listStartY = topPos + 50;
         int visibleSlots = 11;
         int listContentWidth = 220 - SCROLLBAR_WIDTH;
 
         for (int i = 0; i < visibleSlots; i++) {
             int listIndex = i + scrollOffset;
-            if (listIndex >= displayList.size()) break;
+            if (listIndex >= displayProgresses.size()) break;
 
-            ProgressManager.CustomProgress progress = displayList.get(listIndex);
+            ProgressManager.CustomProgress progress = displayProgresses.get(listIndex);
             int entryY = listStartY + i * 22;
 
             // 绘制进度条目背景
@@ -507,44 +576,16 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
         }
 
         // 绘制滚动条
-        if (isContentScrollable(displayList)) {
-            drawScrollbar(guiGraphics, mouseX, mouseY, displayList.size());
+        if (isContentScrollable()) {
+            drawScrollbar(guiGraphics, mouseX, mouseY);
         }
     }
 
-    private List<ProgressManager.CustomProgress> getDisplayProgressList() {
-        List<ProgressManager.CustomProgress> result = new ArrayList<>();
-
-        if (showSubProgress) {
-            if (selectedParentId != null) {
-                for (ProgressManager.CustomProgress progress : progressList) {
-                    if (selectedParentId.equals(progress.parentId)) {
-                        result.add(progress);
-                    }
-                }
-            } else {
-                for (ProgressManager.CustomProgress progress : progressList) {
-                    if (progress.parentId != null) {
-                        result.add(progress);
-                    }
-                }
-            }
-        } else {
-            for (ProgressManager.CustomProgress progress : progressList) {
-                if (progress.parentId == null) {
-                    result.add(progress);
-                }
-            }
-        }
-
-        return result;
+    private boolean isContentScrollable() {
+        return displayProgresses.size() > 11;
     }
 
-    private boolean isContentScrollable(List<ProgressManager.CustomProgress> displayList) {
-        return displayList.size() > 11;
-    }
-
-    private void drawScrollbar(GuiGraphics guiGraphics, int mouseX, int mouseY, int totalEntries) {
+    private void drawScrollbar(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         int scrollbarX = leftPos + 255 + (220 - SCROLLBAR_WIDTH);
         int scrollbarY = topPos + 50;
         int scrollbarHeight = 11 * 22;
@@ -554,8 +595,8 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
 
         // 计算滚动条滑块
         int visibleEntries = 11;
-        int scrollbarThumbHeight = Math.max(20, scrollbarHeight * visibleEntries / totalEntries);
-        int maxScroll = Math.max(0, (totalEntries - visibleEntries) * 22);
+        int scrollbarThumbHeight = Math.max(20, scrollbarHeight * visibleEntries / displayProgresses.size());
+        int maxScroll = Math.max(0, (displayProgresses.size() - visibleEntries) * 22);
         int scrollProgress = maxScroll > 0 ? (int) ((float) scrollOffset / maxScroll * (scrollbarHeight - scrollbarThumbHeight)) : 0;
 
         int thumbY = scrollbarY + scrollProgress;
@@ -637,10 +678,9 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
         guiGraphics.drawString(font, "数量:", 25, 163, 0xCCCCCC, false);
 
         // 绘制右侧标签
-        List<ProgressManager.CustomProgress> displayList = getDisplayProgressList();
         String listTitle = showStatistics ? "进度统计" :
-                showSubProgress ? "子进度列表 (" + displayList.size() + ")" :
-                        "进度列表 (" + displayList.size() + ")";
+                showSubProgress ? "子进度列表 (" + displayProgresses.size() + ")" :
+                        "进度列表 (" + displayProgresses.size() + ")";
         guiGraphics.drawString(font, listTitle, 270, 37, 0xFFFFFF, false);
 
         // 绘制当前类型显示
@@ -684,13 +724,12 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
 
         // 进度条目工具提示
         if (!showStatistics) {
-            List<ProgressManager.CustomProgress> displayList = getDisplayProgressList();
             int listStartY = topPos + 50;
             for (int i = 0; i < 11; i++) {
                 int listIndex = i + scrollOffset;
-                if (listIndex >= displayList.size()) break;
+                if (listIndex >= displayProgresses.size()) break;
 
-                ProgressManager.CustomProgress progress = displayList.get(listIndex);
+                ProgressManager.CustomProgress progress = displayProgresses.get(listIndex);
                 int entryY = listStartY + i * 22;
 
                 if (isMouseOver(mouseX, mouseY, leftPos + 255, entryY, 220 - SCROLLBAR_WIDTH, 20)) {
@@ -730,10 +769,7 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
 
             int scrollbarY = topPos + 50;
             int scrollbarHeight = 11 * 22;
-            List<ProgressManager.CustomProgress> displayList = getDisplayProgressList();
-            int totalEntries = displayList.size();
-            int visibleEntries = 11;
-            int maxScroll = Math.max(0, (totalEntries - visibleEntries) * 22);
+            int maxScroll = Math.max(0, (displayProgresses.size() - 11) * 22);
 
             double scrollPercent = (mouseY - scrollbarY) / (double)scrollbarHeight;
             scrollOffset = (int)(maxScroll * Math.max(0, Math.min(1, scrollPercent)));
@@ -741,13 +777,12 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             return true;
         }
 
-        List<ProgressManager.CustomProgress> displayList = getDisplayProgressList();
         int listStartY = topPos + 50;
         for (int i = 0; i < 11; i++) {
             int listIndex = i + scrollOffset;
-            if (listIndex >= displayList.size()) break;
+            if (listIndex >= displayProgresses.size()) break;
 
-            ProgressManager.CustomProgress progress = displayList.get(listIndex);
+            ProgressManager.CustomProgress progress = displayProgresses.get(listIndex);
             int entryY = listStartY + i * 22;
 
             if (isMouseOver(mouseX, mouseY, leftPos + 255, entryY, 220 - SCROLLBAR_WIDTH, 20)) {
@@ -773,10 +808,7 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
         if (isDraggingScroll) {
             int scrollbarY = topPos + 50;
             int scrollbarHeight = 11 * 22;
-            List<ProgressManager.CustomProgress> displayList = getDisplayProgressList();
-            int totalEntries = displayList.size();
-            int visibleEntries = 11;
-            int maxScroll = Math.max(0, (totalEntries - visibleEntries) * 22);
+            int maxScroll = Math.max(0, (displayProgresses.size() - 11) * 22);
 
             double scrollPercent = (mouseY - scrollbarY) / (double)scrollbarHeight;
             scrollOffset = (int)(maxScroll * Math.max(0, Math.min(1, scrollPercent)));
@@ -788,8 +820,7 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         if (isMouseOver(mouseX, mouseY, leftPos + 250, topPos + 25, 230, 280)) {
-            List<ProgressManager.CustomProgress> displayList = getDisplayProgressList();
-            int maxScroll = Math.max(0, displayList.size() - 11);
+            int maxScroll = Math.max(0, displayProgresses.size() - 11);
             if (delta > 0) {
                 if (scrollOffset > 0) scrollOffset--;
             } else if (delta < 0) {
