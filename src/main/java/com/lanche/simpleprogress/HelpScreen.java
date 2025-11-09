@@ -19,7 +19,7 @@ public class HelpScreen extends Screen {
     private static final int SCROLLBAR_WIDTH = 8;
 
     private static final List<String> HELP_CONTENT = Arrays.asList(
-            "§6=== Simple Progress 使用指南 v1.0.2 ===",
+            "§6=== Simple Progress 使用指南 v1.0.3 ===",
             "",
             "§a【新增功能】",
             "§e-§7 新增§6建筑§7和§5附魔§7进度类型",
@@ -168,7 +168,7 @@ public class HelpScreen extends Screen {
             "§7- 进度数据会自动保存，无需担心丢失",
             "§7- 确保目标ID填写正确，否则进度不会更新",
             "§7- 如果进度没有更新，请检查ID是否拼写正确",
-            "§7- 版本: §e1.0.2",
+            "§7- 版本: §e1.0.3",
             "§7- 开发者: §e澜澈LanChe",
             "§7- 主页: §9lanche.vvvv.host",
             "§7- 兼容性: §aMinecraft 1.20.1 + Forge 47.4.0"
@@ -215,7 +215,7 @@ public class HelpScreen extends Screen {
         guiGraphics.fill(contentX, contentY, contentX + contentWidth + SCROLLBAR_WIDTH, contentY + contentHeight, 0xDD000000);
 
         guiGraphics.fill(contentX, contentY, contentX + contentWidth + SCROLLBAR_WIDTH, contentY + 25, 0xFF333366);
-        guiGraphics.drawCenteredString(font, "§6Simple Progress 完整使用指南 v1.0.2", this.width / 2, contentY + 8, 0xFFFFFF);
+        guiGraphics.drawCenteredString(font, "§6Simple Progress 完整使用指南 v1.0.3", this.width / 2, contentY + 8, 0xFFFFFF);
 
         // 设置剪裁区域
         int scissorX = contentX;

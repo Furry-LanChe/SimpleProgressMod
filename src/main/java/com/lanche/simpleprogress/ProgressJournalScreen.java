@@ -273,7 +273,6 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             subProgress.completed = false;
 
             ProgressManager.addSubProgress(minecraft.player, parentProgress.id, subProgress);
-            ProgressManager.savePlayerProgress(minecraft.player);
             reloadProgressList();
 
             titleField.setValue("");
@@ -305,6 +304,7 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
 
     private void toggleSubProgressView() {
         if (showSubProgress) {
+            // 切换回显示全部进度
             showSubProgress = false;
             selectedParentId = null;
             selectedProgressIndex = -1;
@@ -313,18 +313,12 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
                 minecraft.player.displayClientMessage(Component.literal("§a显示全部进度"), false);
             }
         } else {
+            // 切换到显示子进度
             if (selectedProgressIndex != -1) {
                 ProgressManager.CustomProgress selectedProgress = progressList.get(selectedProgressIndex);
 
-                reloadProgressList();
-
-                boolean hasSubProgresses = false;
-                for (ProgressManager.CustomProgress progress : progressList) {
-                    if (selectedProgress.id.equals(progress.parentId)) {
-                        hasSubProgresses = true;
-                        break;
-                    }
-                }
+                // 修复：直接检查选中的进度是否有子进度
+                boolean hasSubProgresses = selectedProgress.hasSubProgresses();
 
                 if (hasSubProgresses) {
                     showSubProgress = true;

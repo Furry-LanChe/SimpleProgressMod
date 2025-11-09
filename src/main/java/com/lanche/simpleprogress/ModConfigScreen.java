@@ -51,7 +51,7 @@ public class ModConfigScreen extends Screen {
         this.renderBackground(guiGraphics);
         guiGraphics.drawCenteredString(this.font, this.title, this.width / 2, 20, 0xFFFFFF);
         guiGraphics.drawCenteredString(this.font, "Simple Progress Mod", this.width / 2, 40, 0xCCCCCC);
-        guiGraphics.drawCenteredString(this.font, "版本 1.0.2", this.width / 2, 55, 0xCCCCCC);
+        guiGraphics.drawCenteredString(this.font, "版本 1.0.3", this.width / 2, 55, 0xCCCCCC);
         guiGraphics.drawCenteredString(this.font, "新增建筑和附魔进度类型", this.width / 2, 70, 0xCCCCCC);
         guiGraphics.drawCenteredString(this.font, "支持子进度和树状图统计", this.width / 2, 85, 0xCCCCCC);
         super.render(guiGraphics, mouseX, mouseY, partialTick);

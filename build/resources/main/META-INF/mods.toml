@@ -4,7 +4,7 @@ license="MIT"
 
 [[mods]]
 modId="simpleprogress"
-version="1.0.2"
+version="1.0.3"
 displayName="Simple Progress"
 description="A GUI-based custom progress management mod"
 authors="澜澈LanChe"
