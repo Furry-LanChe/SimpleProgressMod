@@ -1,0 +1,25 @@
+modLoader="javafml"
+loaderVersion="[47,)"
+license="MIT"
+
+[[mods]]
+modId="simpleprogress"
+version="1.0.3"
+displayName="Simple Progress"
+description="A GUI-based custom progress management mod"
+authors="澜澈LanChe"
+displayURL="lanche.vvvv.host"
+
+[[dependencies.simpleprogress]]
+modId="forge"
+versionRange="[47.4.0,)"
+mandatory=true
+order="AFTER"
+side="BOTH"
+
+[[dependencies.simpleprogress]]
+modId="minecraft"
+versionRange="[1.20.1,1.21)"
+mandatory=true
+order="AFTER"
+side="BOTH"
