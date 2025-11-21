@@ -32,6 +32,9 @@ public class SimpleProgress {
         event.enqueueWork(() -> {
             MenuScreens.register(ModMenus.PROGRESS_JOURNAL.get(), ProgressJournalScreen::new);
 
+            // 初始化语言管理器
+            LanguageManager.initialize();
+
             // 1.20.1 中配置屏幕注册方式
             ModLoadingContext.get().registerExtensionPoint(
                     ConfigScreenHandler.ConfigScreenFactory.class,

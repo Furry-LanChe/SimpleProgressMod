@@ -32,7 +32,7 @@ public class ModCommands {
                         MenuProvider menuProvider = new MenuProvider() {
                             @Override
                             public Component getDisplayName() {
-                                return Component.literal("进度日志");
+                                return Component.translatable("simpleprogress.gui.progress_journal");
                             }
 
                             @Nullable
@@ -43,7 +43,7 @@ public class ModCommands {
                         };
 
                         NetworkHooks.openScreen(player, menuProvider);
-                        player.sendSystemMessage(Component.literal("§a打开进度管理界面..."));
+                        player.sendSystemMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.command.open_gui")));
                     }
                     return 1;
                 })

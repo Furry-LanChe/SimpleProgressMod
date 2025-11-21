@@ -18,8 +18,8 @@ public class HelpScreen extends Screen {
     private final List<FormattedCharSequence> helpLines = new ArrayList<>();
     private static final int SCROLLBAR_WIDTH = 8;
 
-    private static final List<String> HELP_CONTENT = Arrays.asList(
-            "§6=== Simple Progress 使用指南 v1.0.3 ===",
+    private static final List<String> HELP_CONTENT_ZH = Arrays.asList(
+            "§6=== Simple Progress 使用指南 v1.0.4 ===",
             "",
             "§a【新增功能】",
             "§e-§7 新增§6建筑§7和§5附魔§7进度类型",
@@ -28,6 +28,7 @@ public class HelpScreen extends Screen {
             "§e-§7 修复HUD显示，移动到右上角",
             "§e-§7 新增多种界面主题",
             "§e-§7 增大GUI尺寸，改善用户体验",
+            "§e-§7 完整中英双语支持",
             "",
             "§a【创建进度】",
             "§e1.§7 选择进度类型: §c击杀§7 / §a获得§7 / §9探索§7 / §6建筑§7 / §5附魔§7",
@@ -67,6 +68,11 @@ public class HelpScreen extends Screen {
             "§e-§7 点击'主题'按钮切换界面主题",
             "§e-§7 支持6种主题: 默认/暗色/亮色/绿色/蓝色/紫色",
             "§e-§7 主题设置会保存到本地",
+            "",
+            "§a【语言设置】",
+            "§e-§7 点击语言按钮切换中英文界面",
+            "§e-§7 支持简体中文和英文",
+            "§e-§7 语言设置会自动保存",
             "",
             "§a【HUD显示】",
             "§e-§7 活跃进度显示在屏幕右上角",
@@ -168,14 +174,176 @@ public class HelpScreen extends Screen {
             "§7- 进度数据会自动保存，无需担心丢失",
             "§7- 确保目标ID填写正确，否则进度不会更新",
             "§7- 如果进度没有更新，请检查ID是否拼写正确",
-            "§7- 版本: §e1.0.3",
+            "§7- 版本: §e1.0.4",
             "§7- 开发者: §e澜澈LanChe",
             "§7- 主页: §9lanche.vvvv.host",
             "§7- 兼容性: §aMinecraft 1.20.1 + Forge 47.4.0"
     );
 
+    private static final List<String> HELP_CONTENT_EN = Arrays.asList(
+            "§6=== Simple Progress User Guide v1.0.4 ===",
+            "",
+            "§a【New Features】",
+            "§e-§7 Added §6Build§7 and §5Enchant§7 progress types",
+            "§e-§7 Support sub-progress system for hierarchical progress",
+            "§e-§7 Improved tree chart statistics interface",
+            "§e-§7 Fixed HUD display, moved to top-right corner",
+            "§e-§7 Added multiple interface themes",
+            "§e-§7 Increased GUI size for better user experience",
+            "§e-§7 Full Chinese-English bilingual support",
+            "",
+            "§a【Creating Progress】",
+            "§e1.§7 Select progress type: §cKill§7 / §aObtain§7 / §9Explore§7 / §6Build§7 / §5Enchant§7",
+            "§e2.§7 Enter progress title (e.g., 'Zombie Hunter')",
+            "§e3.§7 Enter target ID (refer to table below)",
+            "§e4.§7 Enter target count",
+            "§e5.§7 Click 'Add Progress' button",
+            "",
+            "§a【Sub-Progress System】",
+            "§e-§7 Select a progress and click 'Add Sub-Progress'",
+            "§e-§7 Sub-progresses appear below parent progress",
+            "§e-§7 Click 'Show Sub-Progress' to view specific progress sub-progresses",
+            "§e-§7 Tree chart shows complete progress hierarchy",
+            "",
+            "§a【Managing Progress】",
+            "§e-§7 §eClick§7 on progress in right list to select",
+            "§e-§7 Click 'Delete Progress' to remove selected progress",
+            "§e-§7 Use mouse wheel or drag scrollbar to browse list",
+            "§e-§7 Click 'Show Sub-Progress' to toggle view",
+            "",
+            "§a【Progress Tracking】",
+            "§e-§7 Killing entities auto-updates §cKill§7 progress",
+            "§e-§7 Obtaining items auto-updates §aObtain§7 progress",
+            "§e-§7 Exploring dimensions auto-updates §9Explore§7 progress",
+            "§e-§7 Placing blocks auto-updates §6Build§7 progress",
+            "§e-§7 Enchanting items auto-updates §5Enchant§7 progress",
+            "§e-§7 Green progress bar indicates in progress, orange indicates completed",
+            "§e-§7 Progress completion shows notifications in chat and HUD",
+            "",
+            "§a【Statistics Function】",
+            "§e-§7 Click 'Statistics' button to view progress tree chart",
+            "§e-§7 Tree chart shows progress hierarchy and completion status",
+            "§e-§7 Click 'Clear All' button to delete all progress",
+            "§e-§7 Clear operation requires confirmation to prevent accidents",
+            "",
+            "§a【Theme System】",
+            "§e-§7 Click 'Theme' button to switch interface themes",
+            "§e-§7 Supports 6 themes: Default/Dark/Light/Green/Blue/Purple",
+            "§e-§7 Theme settings are saved locally",
+            "",
+            "§a【Language Settings】",
+            "§e-§7 Click language button to switch between Chinese and English",
+            "§e-§7 Supports Simplified Chinese and English",
+            "§e-§7 Language settings are automatically saved",
+            "",
+            "§a【HUD Display】",
+            "§e-§7 Active progress displayed in top-right corner",
+            "§e-§7 Shows progress bar, title and completion percentage",
+            "§e-§7 Maximum 3 active progresses displayed simultaneously",
+            "§e-§7 Temporary notification shown when progress completes",
+            "",
+            "§a【Data Saving】",
+            "§e-§7 Progress data automatically saved to world folder",
+            "§e-§7 Progress not lost after game restart",
+            "§e-§7 Each player has independent progress data",
+            "§e-§7 Supports complete serialization of sub-progresses",
+            "",
+            "§c【Important Notes】",
+            "§7- Must enter correct target ID, otherwise progress won't update",
+            "§7- Target ID format: §eminecraft:entity_name§7 or §eminecraft:item_name§7 etc.",
+            "§7- If progress not updating, check if ID is correct",
+            "§7- Build progress tracks block placement, Enchant progress tracks enchantment acquisition",
+            "",
+            "§6【How to Get IDs】",
+            "§e-§7 Press F3+H to open advanced tooltips",
+            "§e-§7 Hover over items or entities to view ID",
+            "§e-§7 Or refer to complete reference table below",
+            "",
+            "§6【Common Entities - Kill Progress】",
+            "§eZombie§7: minecraft:zombie",
+            "§eSkeleton§7: minecraft:skeleton",
+            "§eCreeper§7: minecraft:creeper",
+            "§eSpider§7: minecraft:spider",
+            "§eEnderman§7: minecraft:enderman",
+            "§eWitch§7: minecraft:witch",
+            "§eSlime§7: minecraft:slime",
+            "§eBlaze§7: minecraft:blaze",
+            "§eGhast§7: minecraft:ghast",
+            "§eWither Skeleton§7: minecraft:wither_skeleton",
+            "§eEnder Dragon§7: minecraft:ender_dragon",
+            "§eWither§7: minecraft:wither",
+            "",
+            "§6【Common Items - Obtain Progress】",
+            "§eDiamond§7: minecraft:diamond",
+            "§eIron Ingot§7: minecraft:iron_ingot",
+            "§eGold Ingot§7: minecraft:gold_ingot",
+            "§eEmerald§7: minecraft:emerald",
+            "§eNetherite Ingot§7: minecraft:netherite_ingot",
+            "§eCoal§7: minecraft:coal",
+            "§eRedstone§7: minecraft:redstone",
+            "§eLapis Lazuli§7: minecraft:lapis_lazuli",
+            "§eNether Star§7: minecraft:nether_star",
+            "",
+            "§6【Explore Dimensions】",
+            "§eOverworld§7: minecraft:overworld",
+            "§eNether§7: minecraft:the_nether",
+            "§eEnd§7: minecraft:the_end",
+            "",
+            "§6【Common Blocks - Build Progress】",
+            "§eDirt§7: minecraft:dirt",
+            "§eStone§7: minecraft:stone",
+            "§eCobblestone§7: minecraft:cobblestone",
+            "§eOak Planks§7: minecraft:oak_planks",
+            "§eGlass§7: minecraft:glass",
+            "§eWhite Wool§7: minecraft:white_wool",
+            "§eBricks§7: minecraft:bricks",
+            "§eIron Block§7: minecraft:iron_block",
+            "§eGold Block§7: minecraft:gold_block",
+            "§eDiamond Block§7: minecraft:diamond_block",
+            "§eObsidian§7: minecraft:obsidian",
+            "",
+            "§6【Common Enchantments - Enchant Progress】",
+            "§eSharpness§7: minecraft:sharpness",
+            "§eProtection§7: minecraft:protection",
+            "§eFire Protection§7: minecraft:fire_protection",
+            "§eFeather Falling§7: minecraft:feather_falling",
+            "§eBlast Protection§7: minecraft:blast_protection",
+            "§eProjectile Protection§7: minecraft:projectile_protection",
+            "§eRespiration§7: minecraft:respiration",
+            "§eAqua Affinity§7: minecraft:aqua_affinity",
+            "§eThorns§7: minecraft:thorns",
+            "§eDepth Strider§7: minecraft:depth_strider",
+            "§eFrost Walker§7: minecraft:frost_walker",
+            "§eEfficiency§7: minecraft:efficiency",
+            "§eSilk Touch§7: minecraft:silk_touch",
+            "§eUnbreaking§7: minecraft:unbreaking",
+            "§eFortune§7: minecraft:fortune",
+            "§ePower§7: minecraft:power",
+            "§ePunch§7: minecraft:punch",
+            "§eFlame§7: minecraft:flame",
+            "§eInfinity§7: minecraft:infinity",
+            "§eLuck of the Sea§7: minecraft:luck_of_the_sea",
+            "§eLure§7: minecraft:lure",
+            "",
+            "§a【Progress Type Summary】",
+            "§cKill§7: Kill specific entities",
+            "§aObtain§7: Obtain specific items",
+            "§9Explore§7: Reach specific dimensions",
+            "§6Build§7: Place specific blocks",
+            "§5Enchant§7: Obtain specific enchantments",
+            "",
+            "§c【Notes】",
+            "§7- Progress data automatically saved, no need to worry about loss",
+            "§7- Ensure target ID is entered correctly, otherwise progress won't update",
+            "§7- If progress not updating, check if ID spelling is correct",
+            "§7- Version: §e1.0.4",
+            "§7- Developer: §e澜澈LanChe",
+            "§7- Homepage: §9lanche.vvvv.host",
+            "§7- Compatibility: §aMinecraft 1.20.1 + Forge 47.4.0"
+    );
+
     public HelpScreen(Screen parent) {
-        super(Component.literal("完整使用指南"));
+        super(Component.translatable("simpleprogress.gui.help"));
         this.parent = parent;
     }
 
@@ -184,7 +352,7 @@ public class HelpScreen extends Screen {
         preprocessHelpText();
 
         this.addRenderableWidget(Button.builder(
-                Component.literal("返回进度管理器"),
+                Component.translatable("simpleprogress.gui.back_to_manager"),
                 button -> this.minecraft.setScreen(parent)
         ).pos(this.width / 2 - 100, this.height - 40).size(200, 20).build());
     }
@@ -193,7 +361,10 @@ public class HelpScreen extends Screen {
         helpLines.clear();
         int contentWidth = this.width - 120 - SCROLLBAR_WIDTH;
 
-        for (String line : HELP_CONTENT) {
+        List<String> helpContent = LanguageManager.getCurrentLanguage().equals("zh_cn") ?
+                HELP_CONTENT_ZH : HELP_CONTENT_EN;
+
+        for (String line : helpContent) {
             if (line.isEmpty()) {
                 helpLines.add(FormattedCharSequence.EMPTY);
             } else {
@@ -215,15 +386,12 @@ public class HelpScreen extends Screen {
         guiGraphics.fill(contentX, contentY, contentX + contentWidth + SCROLLBAR_WIDTH, contentY + contentHeight, 0xDD000000);
 
         guiGraphics.fill(contentX, contentY, contentX + contentWidth + SCROLLBAR_WIDTH, contentY + 25, 0xFF333366);
-        guiGraphics.drawCenteredString(font, "§6Simple Progress 完整使用指南 v1.0.3", this.width / 2, contentY + 8, 0xFFFFFF);
 
-        // 设置剪裁区域
-        int scissorX = contentX;
-        int scissorY = contentY + 25;
-        int scissorWidth = contentWidth;
-        int scissorHeight = contentHeight - 25;
+        String title = LanguageManager.getCurrentLanguage().equals("zh_cn") ?
+                "§6Simple Progress 完整使用指南 v1.0.4" : "§6Simple Progress Complete User Guide v1.0.4";
+        guiGraphics.drawCenteredString(font, title, this.width / 2, contentY + 8, 0xFFFFFF);
 
-        setScissor(scissorX, scissorY, scissorWidth, scissorHeight);
+        setScissor(contentX, contentY + 25, contentWidth, contentHeight - 25);
 
         int lineHeight = 14;
         int startY = contentY + 35 - scrollOffset;

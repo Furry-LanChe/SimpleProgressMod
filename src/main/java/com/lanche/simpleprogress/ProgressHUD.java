@@ -26,25 +26,20 @@ public class ProgressHUD {
             int width = event.getWindow().getGuiScaledWidth();
             int height = event.getWindow().getGuiScaledHeight();
 
-            // 显示临时的进度更新消息 - 移到右上角
             if (System.currentTimeMillis() - lastProgressUpdate < 5000 && !currentProgressMessage.isEmpty()) {
-                int yPos = 20; // 顶部位置
+                int yPos = 20;
                 int stringWidth = mc.font.width(currentProgressMessage);
-                int xPos = width - stringWidth - 10; // 右侧位置
+                int xPos = width - stringWidth - 10;
 
-                // 绘制半透明背景
                 guiGraphics.fill(xPos - 5, yPos - 2, xPos + stringWidth + 5, yPos + 10, 0x80000000);
-                // 绘制文本
                 guiGraphics.drawString(mc.font, currentProgressMessage, xPos, yPos, 0xFFFFFF);
             }
 
-            // 显示活跃进度的HUD - 移到右上角
             renderActiveProgressHUD(guiGraphics, width, height, mc);
         }
     }
 
     private static void renderActiveProgressHUD(GuiGraphics guiGraphics, int width, int height, Minecraft mc) {
-        // 获取玩家进度并显示最近活跃的3个
         List<ProgressManager.CustomProgress> progresses = ProgressManager.getProgresses(mc.player);
         if (progresses == null || progresses.isEmpty()) return;
 
@@ -56,9 +51,9 @@ public class ProgressHUD {
 
         if (activeProgresses.isEmpty()) return;
 
-        int startY = 40; // 从顶部开始
-        int barWidth = 150; // 进度条宽度
-        int xPos = width - barWidth - 10; // 右侧位置
+        int startY = 40;
+        int barWidth = 150;
+        int xPos = width - barWidth - 10;
 
         for (int i = 0; i < activeProgresses.size(); i++) {
             ProgressManager.CustomProgress progress = activeProgresses.get(i);
@@ -69,25 +64,20 @@ public class ProgressHUD {
     private static void renderProgressBar(GuiGraphics guiGraphics, int x, int y, int barWidth, ProgressManager.CustomProgress progress, Minecraft mc) {
         int barHeight = 12;
 
-        // 绘制背景
         guiGraphics.fill(x, y, x + barWidth, y + barHeight, 0x80000000);
 
-        // 绘制进度条
         int progressWidth = (int) (barWidth * progress.getProgress());
         int color = getProgressColor(progress.type);
         guiGraphics.fill(x, y, x + progressWidth, y + barHeight, color);
 
-        // 绘制边框
         guiGraphics.fill(x, y, x + barWidth, y + 1, 0xFFAAAAAA);
         guiGraphics.fill(x, y + barHeight - 1, x + barWidth, y + barHeight, 0xFFAAAAAA);
         guiGraphics.fill(x, y, x + 1, y + barHeight, 0xFFAAAAAA);
         guiGraphics.fill(x + barWidth - 1, y, x + barWidth, y + barHeight, 0xFFAAAAAA);
 
-        // 绘制文本
         String text = progress.title + " " + progress.current + "/" + progress.targetCount;
         int textWidth = mc.font.width(text);
 
-        // 如果文本太长，缩短它
         if (textWidth > barWidth - 10) {
             text = mc.font.plainSubstrByWidth(text, barWidth - 15) + "...";
             textWidth = mc.font.width(text);
@@ -96,7 +86,6 @@ public class ProgressHUD {
         int textX = x + (barWidth - textWidth) / 2;
         guiGraphics.drawString(mc.font, text, textX, y - 10, 0xFFFFFF);
 
-        // 绘制百分比
         String percent = String.format("%.1f%%", progress.getProgress() * 100);
         int percentWidth = mc.font.width(percent);
         int percentX = x + (barWidth - percentWidth) / 2;

@@ -23,13 +23,11 @@ public class ProgressManager {
     private static final Map<UUID, List<CustomProgress>> playerProgresses = new ConcurrentHashMap<>();
     private static final Logger LOGGER = LogManager.getLogger("SimpleProgress");
 
-    // 进度统计
     private static final Map<UUID, PlayerStats> playerStats = new ConcurrentHashMap<>();
 
     public static List<CustomProgress> getProgresses(Player player) {
         UUID playerId = player.getUUID();
 
-        // 如果内存中没有数据，尝试从文件加载
         if (!playerProgresses.containsKey(playerId)) {
             loadPlayerProgress(player);
         }
@@ -61,7 +59,6 @@ public class ProgressManager {
         }
     }
 
-    // 递归查找进度
     private static CustomProgress findProgressById(List<CustomProgress> progresses, String id) {
         for (CustomProgress progress : progresses) {
             if (progress.id.equals(id)) {
@@ -77,19 +74,17 @@ public class ProgressManager {
         return null;
     }
 
-    // 递归获取所有子进度（平铺列表）
     public static List<CustomProgress> getAllSubProgresses(CustomProgress parent) {
         List<CustomProgress> allSubs = new ArrayList<>();
         if (parent.subProgresses != null) {
             for (CustomProgress sub : parent.subProgresses) {
                 allSubs.add(sub);
-                allSubs.addAll(getAllSubProgresses(sub)); // 递归获取孙进度
+                allSubs.addAll(getAllSubProgresses(sub));
             }
         }
         return allSubs;
     }
 
-    // 获取指定父进度的直接子进度
     public static List<CustomProgress> getDirectSubProgresses(List<CustomProgress> allProgresses, String parentId) {
         List<CustomProgress> directSubs = new ArrayList<>();
         for (CustomProgress progress : allProgresses) {
@@ -108,7 +103,6 @@ public class ProgressManager {
         }
     }
 
-    // 递归删除进度
     private static boolean removeProgressRecursive(List<CustomProgress> progresses, String id) {
         Iterator<CustomProgress> iterator = progresses.iterator();
         while (iterator.hasNext()) {
@@ -135,7 +129,23 @@ public class ProgressManager {
         }
     }
 
-    // 递归更新进度
+    private static String getCompletionMessage(ProgressType type, String title, int current, int targetCount, String target) {
+        switch(type) {
+            case KILL:
+                return LanguageManager.getTranslation("simpleprogress.message.kill_complete", title, current, targetCount);
+            case OBTAIN:
+                return LanguageManager.getTranslation("simpleprogress.message.obtain_complete", title, current, targetCount);
+            case EXPLORE:
+                return LanguageManager.getTranslation("simpleprogress.message.explore_complete", title, getDimensionDisplayName(target));
+            case BUILD:
+                return LanguageManager.getTranslation("simpleprogress.message.build_complete", title, current, targetCount);
+            case ENCHANT:
+                return LanguageManager.getTranslation("simpleprogress.message.enchant_complete", title, getEnchantmentDisplayName(target));
+            default:
+                return LanguageManager.getTranslation("simpleprogress.message.progress_complete", title, current, targetCount);
+        }
+    }
+
     private static boolean updateProgressRecursive(List<CustomProgress> progresses, String target, ProgressType type, Player player) {
         boolean changed = false;
 
@@ -148,15 +158,14 @@ public class ProgressManager {
                     getPlayerStats(player).completedProgresses++;
 
                     if (wasNotCompleted && player instanceof ServerPlayer) {
-                        String completionMessage = String.format("§6【进度完成】§a %s §7- §e%d/%d §7(100%%)",
-                                progress.title, progress.current, progress.targetCount);
+                        String completionMessage = getCompletionMessage(progress.type, progress.title, progress.current, progress.targetCount, progress.target);
                         player.displayClientMessage(Component.literal(completionMessage), false);
                         ProgressHUD.showProgressUpdate(completionMessage);
                     }
                 } else {
                     if (progress.current % Math.max(1, progress.targetCount / 5) == 0) {
                         float percentage = (float) progress.current / progress.targetCount * 100;
-                        String updateMessage = String.format("§7【进度更新】§a %s §7- §e%d/%d §7(%.1f%%)",
+                        String updateMessage = LanguageManager.getTranslation("simpleprogress.message.progress_update",
                                 progress.title, progress.current, progress.targetCount, percentage);
                         player.displayClientMessage(Component.literal(updateMessage), false);
                     }
@@ -164,7 +173,6 @@ public class ProgressManager {
                 changed = true;
             }
 
-            // 递归更新子进度
             if (progress.subProgresses != null && !progress.subProgresses.isEmpty()) {
                 if (updateProgressRecursive(progress.subProgresses, target, type, player)) {
                     changed = true;
@@ -175,7 +183,6 @@ public class ProgressManager {
         return changed;
     }
 
-    // 新方法：更新探索进度
     public static void updateExploreProgress(Player player, String dimension, int x, int z) {
         List<CustomProgress> progresses = getProgresses(player);
         boolean changed = updateExploreProgressRecursive(progresses, dimension, player);
@@ -194,7 +201,7 @@ public class ProgressManager {
                 progress.completed = true;
                 getPlayerStats(player).completedProgresses++;
 
-                String completionMessage = String.format("§6【探索完成】§a %s §7- 到达 §e%s",
+                String completionMessage = LanguageManager.getTranslation("simpleprogress.message.explore_complete",
                         progress.title, getDimensionDisplayName(dimension));
                 player.displayClientMessage(Component.literal(completionMessage), false);
                 ProgressHUD.showProgressUpdate(completionMessage);
@@ -211,7 +218,6 @@ public class ProgressManager {
         return changed;
     }
 
-    // 新方法：更新建筑进度
     public static void updateBuildProgress(Player player, String blockId) {
         List<CustomProgress> progresses = getProgresses(player);
         boolean changed = updateBuildProgressRecursive(progresses, blockId, player);
@@ -231,7 +237,7 @@ public class ProgressManager {
                     progress.completed = true;
                     getPlayerStats(player).completedProgresses++;
 
-                    String completionMessage = String.format("§6【建筑完成】§a %s §7- §e%d/%d §7(100%%)",
+                    String completionMessage = LanguageManager.getTranslation("simpleprogress.message.build_complete",
                             progress.title, progress.current, progress.targetCount);
                     player.displayClientMessage(Component.literal(completionMessage), false);
                     ProgressHUD.showProgressUpdate(completionMessage);
@@ -249,7 +255,6 @@ public class ProgressManager {
         return changed;
     }
 
-    // 新方法：更新附魔进度
     public static void updateEnchantProgress(Player player, String enchantmentId) {
         List<CustomProgress> progresses = getProgresses(player);
         boolean changed = updateEnchantProgressRecursive(progresses, enchantmentId, player);
@@ -268,7 +273,7 @@ public class ProgressManager {
                 progress.completed = true;
                 getPlayerStats(player).completedProgresses++;
 
-                String completionMessage = String.format("§6【附魔完成】§a %s §7- 获得 §e%s",
+                String completionMessage = LanguageManager.getTranslation("simpleprogress.message.enchant_complete",
                         progress.title, getEnchantmentDisplayName(enchantmentId));
                 player.displayClientMessage(Component.literal(completionMessage), false);
                 ProgressHUD.showProgressUpdate(completionMessage);
@@ -285,7 +290,6 @@ public class ProgressManager {
         return changed;
     }
 
-    // 树状图数据结构
     public static class TreeChartData {
         public final List<TreeNode> nodes;
         public final int totalProgresses;
@@ -310,16 +314,13 @@ public class ProgressManager {
         }
     }
 
-    // 获取树状图数据的方法
     public static TreeChartData getTreeChartData(Player player) {
         List<CustomProgress> progresses = getProgresses(player);
         List<TreeNode> rootNodes = new ArrayList<>();
 
-        // 构建树状结构
         Map<String, TreeNode> nodeMap = new HashMap<>();
         List<TreeNode> allNodes = new ArrayList<>();
 
-        // 第一遍：创建所有节点（包括子进度）
         List<CustomProgress> allProgresses = getAllProgressesFlat(progresses);
         for (CustomProgress progress : allProgresses) {
             TreeNode node = new TreeNode(progress, 0);
@@ -327,7 +328,6 @@ public class ProgressManager {
             allNodes.add(node);
         }
 
-        // 第二遍：建立父子关系
         for (TreeNode node : allNodes) {
             if (node.progress.parentId != null && !node.progress.parentId.isEmpty()) {
                 TreeNode parent = nodeMap.get(node.progress.parentId);
@@ -342,14 +342,12 @@ public class ProgressManager {
             }
         }
 
-        // 计算统计数据
         int total = allProgresses.size();
         int completed = (int) allProgresses.stream().filter(p -> p.completed).count();
 
         return new TreeChartData(rootNodes, total, completed);
     }
 
-    // 获取所有进度的平铺列表（包括子进度）
     private static List<CustomProgress> getAllProgressesFlat(List<CustomProgress> progresses) {
         List<CustomProgress> allProgresses = new ArrayList<>();
         for (CustomProgress progress : progresses) {
@@ -361,21 +359,22 @@ public class ProgressManager {
         return allProgresses;
     }
 
-    // 清除所有进度的方法
     public static void clearAllProgresses(Player player) {
         UUID playerId = player.getUUID();
         if (playerProgresses.containsKey(playerId)) {
             playerProgresses.get(playerId).clear();
             savePlayerProgress(player);
 
-            // 重置统计
             PlayerStats stats = getPlayerStats(player);
             stats.completedProgresses = 0;
             stats.totalProgresses = 0;
+
+            if (player instanceof ServerPlayer) {
+                player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.all_cleared")), false);
+            }
         }
     }
 
-    // 清除已完成进度的方法
     public static void clearCompletedProgresses(Player player) {
         UUID playerId = player.getUUID();
         if (playerProgresses.containsKey(playerId)) {
@@ -385,13 +384,12 @@ public class ProgressManager {
             if (removedCount > 0) {
                 savePlayerProgress(player);
 
-                // 更新统计
                 PlayerStats stats = getPlayerStats(player);
                 stats.completedProgresses = Math.max(0, stats.completedProgresses - removedCount);
                 stats.totalProgresses = Math.max(0, stats.totalProgresses - removedCount);
 
                 if (player instanceof ServerPlayer) {
-                    player.displayClientMessage(Component.literal("§a已清除 " + removedCount + " 个已完成进度"), false);
+                    player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.cleared_completed", removedCount)), false);
                 }
             }
         }
@@ -414,41 +412,47 @@ public class ProgressManager {
 
     private static String getDimensionDisplayName(String dimension) {
         switch(dimension) {
-            case "minecraft:overworld": return "主世界";
-            case "minecraft:the_nether": return "下界";
-            case "minecraft:the_end": return "末地";
+            case "minecraft:overworld":
+                return LanguageManager.getCurrentLanguage().equals("zh_cn") ? "主世界" : "Overworld";
+            case "minecraft:the_nether":
+                return LanguageManager.getCurrentLanguage().equals("zh_cn") ? "下界" : "Nether";
+            case "minecraft:the_end":
+                return LanguageManager.getCurrentLanguage().equals("zh_cn") ? "末地" : "End";
             default: return dimension;
         }
     }
 
     private static String getEnchantmentDisplayName(String enchantmentId) {
-        switch(enchantmentId) {
-            case "minecraft:sharpness": return "锋利";
-            case "minecraft:protection": return "保护";
-            case "minecraft:fire_protection": return "火焰保护";
-            case "minecraft:feather_falling": return "摔落保护";
-            case "minecraft:blast_protection": return "爆炸保护";
-            case "minecraft:projectile_protection": return "弹射物保护";
-            case "minecraft:respiration": return "水下呼吸";
-            case "minecraft:aqua_affinity": return "水下速掘";
-            case "minecraft:thorns": return "荆棘";
-            case "minecraft:depth_strider": return "深海探索者";
-            case "minecraft:frost_walker": return "冰霜行者";
-            case "minecraft:efficiency": return "效率";
-            case "minecraft:silk_touch": return "精准采集";
-            case "minecraft:unbreaking": return "耐久";
-            case "minecraft:fortune": return "时运";
-            case "minecraft:power": return "力量";
-            case "minecraft:punch": return "冲击";
-            case "minecraft:flame": return "火矢";
-            case "minecraft:infinity": return "无限";
-            case "minecraft:luck_of_the_sea": return "海之眷顾";
-            case "minecraft:lure": return "饵钓";
-            default: return enchantmentId;
+        if (LanguageManager.getCurrentLanguage().equals("zh_cn")) {
+            switch(enchantmentId) {
+                case "minecraft:sharpness": return "锋利";
+                case "minecraft:protection": return "保护";
+                case "minecraft:fire_protection": return "火焰保护";
+                case "minecraft:feather_falling": return "摔落保护";
+                case "minecraft:blast_protection": return "爆炸保护";
+                case "minecraft:projectile_protection": return "弹射物保护";
+                case "minecraft:respiration": return "水下呼吸";
+                case "minecraft:aqua_affinity": return "水下速掘";
+                case "minecraft:thorns": return "荆棘";
+                case "minecraft:depth_strider": return "深海探索者";
+                case "minecraft:frost_walker": return "冰霜行者";
+                case "minecraft:efficiency": return "效率";
+                case "minecraft:silk_touch": return "精准采集";
+                case "minecraft:unbreaking": return "耐久";
+                case "minecraft:fortune": return "时运";
+                case "minecraft:power": return "力量";
+                case "minecraft:punch": return "冲击";
+                case "minecraft:flame": return "火矢";
+                case "minecraft:infinity": return "无限";
+                case "minecraft:luck_of_the_sea": return "海之眷顾";
+                case "minecraft:lure": return "饵钓";
+                default: return enchantmentId;
+            }
+        } else {
+            return enchantmentId.replace("minecraft:", "");
         }
     }
 
-    // 保存玩家进度到文件
     public static void savePlayerProgress(Player player) {
         if (player.level().isClientSide) return;
 
@@ -458,10 +462,8 @@ public class ProgressManager {
 
             if (progresses == null) return;
 
-            // 创建父目录
             Files.createDirectories(progressFile.getParent());
 
-            // 转换为NBT格式保存
             CompoundTag rootTag = new CompoundTag();
             ListTag progressList = new ListTag();
 
@@ -472,25 +474,22 @@ public class ProgressManager {
             rootTag.put("progresses", progressList);
             rootTag.putLong("lastSaved", System.currentTimeMillis());
 
-            // 保存统计
             PlayerStats stats = getPlayerStats(player);
             CompoundTag statsTag = new CompoundTag();
             statsTag.putInt("completedProgresses", stats.completedProgresses);
             statsTag.putInt("totalProgresses", stats.totalProgresses);
             rootTag.put("stats", statsTag);
 
-            // 写入文件
             File file = progressFile.toFile();
             try (FileOutputStream outputStream = new FileOutputStream(file)) {
                 NbtIo.writeCompressed(rootTag, outputStream);
             }
 
         } catch (Exception e) {
-            LOGGER.error("保存玩家进度失败: " + player.getScoreboardName(), e);
+            LOGGER.error("Failed to save player progress: " + player.getScoreboardName(), e);
         }
     }
 
-    // 从文件加载玩家进度
     public static void loadPlayerProgress(Player player) {
         if (player.level().isClientSide) return;
 
@@ -504,7 +503,6 @@ public class ProgressManager {
                 return;
             }
 
-            // 读取文件
             CompoundTag rootTag;
             try (FileInputStream inputStream = new FileInputStream(file)) {
                 rootTag = NbtIo.readCompressed(inputStream);
@@ -522,7 +520,6 @@ public class ProgressManager {
 
             playerProgresses.put(player.getUUID(), progresses);
 
-            // 加载统计
             if (rootTag.contains("stats")) {
                 CompoundTag statsTag = rootTag.getCompound("stats");
                 PlayerStats stats = new PlayerStats();
@@ -534,13 +531,12 @@ public class ProgressManager {
             }
 
         } catch (Exception e) {
-            LOGGER.error("加载玩家进度失败: " + player.getScoreboardName(), e);
+            LOGGER.error("Failed to load player progress: " + player.getScoreboardName(), e);
             playerProgresses.put(player.getUUID(), new ArrayList<>());
             playerStats.put(player.getUUID(), new PlayerStats());
         }
     }
 
-    // 获取进度文件路径
     private static Path getProgressFilePath(Player player) {
         if (player instanceof ServerPlayer serverPlayer) {
             Path worldPath = serverPlayer.server.getWorldPath(LevelResource.ROOT);
@@ -550,7 +546,6 @@ public class ProgressManager {
         return null;
     }
 
-    // 玩家统计类
     public static class PlayerStats {
         public int completedProgresses = 0;
         public int totalProgresses = 0;
@@ -584,16 +579,16 @@ public class ProgressManager {
         }
 
         public String getEstimatedTime() {
-            if (current == 0 || completed) return "未知";
+            if (current == 0 || completed) return LanguageManager.getCurrentLanguage().equals("zh_cn") ? "未知" : "Unknown";
             long elapsed = System.currentTimeMillis() - createdTime;
             long totalEstimated = (long) (elapsed / getProgress());
             long remaining = totalEstimated - elapsed;
 
-            if (remaining < 60000) return "小于1分钟";
+            if (remaining < 60000) return LanguageManager.getCurrentLanguage().equals("zh_cn") ? "小于1分钟" : "Less than 1 minute";
             long minutes = remaining / 60000;
-            if (minutes < 60) return minutes + "分钟";
+            if (minutes < 60) return minutes + (LanguageManager.getCurrentLanguage().equals("zh_cn") ? "分钟" : " minutes");
             long hours = minutes / 60;
-            return hours + "小时";
+            return hours + (LanguageManager.getCurrentLanguage().equals("zh_cn") ? "小时" : " hours");
         }
 
         public boolean hasSubProgresses() {
@@ -614,7 +609,6 @@ public class ProgressManager {
             tag.putLong("createdTime", createdTime);
             tag.putLong("estimatedCompletionTime", estimatedCompletionTime);
 
-            // 序列化子进度
             ListTag subProgressList = new ListTag();
             if (subProgresses != null) {
                 for (CustomProgress subProgress : subProgresses) {
@@ -640,7 +634,6 @@ public class ProgressManager {
             createdTime = tag.getLong("createdTime");
             estimatedCompletionTime = tag.getLong("estimatedCompletionTime");
 
-            // 反序列化子进度
             subProgresses = new ArrayList<>();
             if (tag.contains("subProgresses")) {
                 ListTag subProgressList = tag.getList("subProgresses", 10);
@@ -655,11 +648,11 @@ public class ProgressManager {
     }
 
     public enum ProgressType {
-        KILL("击杀", "§c"),
-        OBTAIN("获得", "§a"),
-        EXPLORE("探索", "§9"),
-        BUILD("建筑", "§6"),
-        ENCHANT("附魔", "§5");
+        KILL(LanguageManager.getTranslation("simpleprogress.type.kill"), "§c"),
+        OBTAIN(LanguageManager.getTranslation("simpleprogress.type.obtain"), "§a"),
+        EXPLORE(LanguageManager.getTranslation("simpleprogress.type.explore"), "§9"),
+        BUILD(LanguageManager.getTranslation("simpleprogress.type.build"), "§6"),
+        ENCHANT(LanguageManager.getTranslation("simpleprogress.type.enchant"), "§5");
 
         private final String displayName;
         private final String colorCode;

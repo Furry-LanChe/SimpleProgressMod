@@ -16,6 +16,7 @@ public class ModEvents {
     public static void onEntityKilled(LivingDeathEvent event) {
         if (event.getSource().getEntity() instanceof Player) {
             Player player = (Player) event.getSource().getEntity();
+            @SuppressWarnings("deprecation")
             String entityId = ForgeRegistries.ENTITY_TYPES.getKey(event.getEntity().getType()).toString();
             ProgressManager.updateProgress(player, entityId, ProgressManager.ProgressType.KILL);
         }
@@ -24,6 +25,7 @@ public class ModEvents {
     @SubscribeEvent
     public static void onItemPickup(EntityItemPickupEvent event) {
         Player player = event.getEntity();
+        @SuppressWarnings("deprecation")
         String itemId = ForgeRegistries.ITEMS.getKey(event.getItem().getItem().getItem()).toString();
         ProgressManager.updateProgress(player, itemId, ProgressManager.ProgressType.OBTAIN);
     }
@@ -31,7 +33,7 @@ public class ModEvents {
     @SubscribeEvent
     public static void onPlayerChangeDimension(PlayerEvent.PlayerChangedDimensionEvent event) {
         Player player = event.getEntity();
-        // 1.20.1 中获取维度信息的方式已改变
+        @SuppressWarnings("deprecation")
         String dimension = player.level().dimension().location().toString();
         ProgressManager.updateExploreProgress(player, dimension, (int)player.getX(), (int)player.getZ());
     }
@@ -40,6 +42,7 @@ public class ModEvents {
     public static void onBlockPlaced(BlockEvent.EntityPlaceEvent event) {
         if (event.getEntity() instanceof Player) {
             Player player = (Player) event.getEntity();
+            @SuppressWarnings("deprecation")
             String blockId = ForgeRegistries.BLOCKS.getKey(event.getState().getBlock()).toString();
             ProgressManager.updateBuildProgress(player, blockId);
         }

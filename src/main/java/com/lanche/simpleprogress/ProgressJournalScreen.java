@@ -13,7 +13,7 @@ import java.util.List;
 
 public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJournalMenu> {
     private static final int GUI_WIDTH = 500;
-    private static final int GUI_HEIGHT = 330;
+    private static final int GUI_HEIGHT = 360;
 
     private List<ProgressManager.CustomProgress> allProgresses = new ArrayList<>();
     private List<ProgressManager.CustomProgress> displayProgresses = new ArrayList<>();
@@ -49,7 +49,6 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
         int buttonWidth = 55;
         int buttonHeight = 18;
 
-        // 第一行：击杀、获得、探索
         for (int i = 0; i < 3; i++) {
             ProgressManager.ProgressType type = ProgressManager.ProgressType.values()[i];
             this.addRenderableWidget(Button.builder(
@@ -62,7 +61,6 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             buttonX += buttonWidth + 5;
         }
 
-        // 第二行：建筑、附魔
         buttonX = leftPos + 25;
         buttonY += buttonHeight + 5;
         for (int i = 3; i < ProgressManager.ProgressType.values().length; i++) {
@@ -77,73 +75,73 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             buttonX += buttonWidth + 5;
         }
 
-        // 输入框位置
         int inputY = topPos + 106;
-        titleField = new EditBox(font, leftPos + 25, inputY, 180, 18, Component.literal("标题"));
+        titleField = new EditBox(font, leftPos + 25, inputY, 180, 18,
+                Component.literal(LanguageManager.getTranslation("simpleprogress.ui.title")));
         titleField.setMaxLength(32);
-        titleField.setValue("新进度");
+        titleField.setValue("");
         this.addRenderableWidget(titleField);
 
-        targetField = new EditBox(font, leftPos + 25, inputY + 33, 180, 18, Component.literal("目标"));
+        targetField = new EditBox(font, leftPos + 25, inputY + 33, 180, 18,
+                Component.literal(LanguageManager.getTranslation("simpleprogress.ui.target")));
         targetField.setMaxLength(64);
         updateTargetFieldHint();
         this.addRenderableWidget(targetField);
 
-        countField = new EditBox(font, leftPos + 25, inputY + 68, 180, 18, Component.literal("数量"));
+        countField = new EditBox(font, leftPos + 25, inputY + 68, 180, 18,
+                Component.literal(LanguageManager.getTranslation("simpleprogress.ui.count")));
         countField.setMaxLength(5);
         countField.setValue("10");
         this.addRenderableWidget(countField);
 
-        // 功能按钮
         int functionButtonY = inputY + 124;
         int functionButtonWidth = 60;
         int functionButtonHeight = 20;
 
-        // 第一行功能按钮
         this.addRenderableWidget(Button.builder(
-                Component.literal("添加进度"),
+                Component.literal(LanguageManager.getTranslation("simpleprogress.ui.add_progress")),
                 button -> addProgress()
         ).pos(leftPos + 25, functionButtonY).size(functionButtonWidth, functionButtonHeight).build());
 
         this.addRenderableWidget(Button.builder(
-                Component.literal("删除进度"),
+                Component.literal(LanguageManager.getTranslation("simpleprogress.ui.delete_progress")),
                 button -> deleteSelectedProgress()
         ).pos(leftPos + 95, functionButtonY).size(functionButtonWidth, functionButtonHeight).build());
 
         this.addRenderableWidget(Button.builder(
-                Component.literal("添加子进度"),
+                Component.literal(LanguageManager.getTranslation("simpleprogress.ui.add_subprogress")),
                 button -> addSubProgress()
         ).pos(leftPos + 165, functionButtonY).size(70, functionButtonHeight).build());
 
-        // 第二行功能按钮
         this.addRenderableWidget(Button.builder(
-                Component.literal("统计"),
+                Component.literal(LanguageManager.getTranslation("simpleprogress.ui.statistics")),
                 button -> showStatistics = !showStatistics
         ).pos(leftPos + 25, functionButtonY + 25).size(functionButtonWidth, functionButtonHeight).build());
 
         this.addRenderableWidget(Button.builder(
-                Component.literal("清除进度"),
+                Component.literal(LanguageManager.getTranslation("simpleprogress.ui.clear_all")),
                 button -> showClearConfirmation()
         ).pos(leftPos + 95, functionButtonY + 25).size(functionButtonWidth, functionButtonHeight).build());
 
         this.addRenderableWidget(Button.builder(
-                Component.literal(showSubProgress ? "显示全部" : "显示子进度"),
+                Component.literal(showSubProgress ?
+                        LanguageManager.getTranslation("simpleprogress.ui.show_all") :
+                        LanguageManager.getTranslation("simpleprogress.ui.show_subprogress")),
                 button -> toggleSubProgressView()
         ).pos(leftPos + 165, functionButtonY + 25).size(70, functionButtonHeight).build());
 
-        // 第三行功能按钮
         this.addRenderableWidget(Button.builder(
-                Component.literal("帮助"),
+                Component.literal(LanguageManager.getTranslation("simpleprogress.gui.help")),
                 button -> showHelpScreen()
         ).pos(leftPos + 25, functionButtonY + 50).size(functionButtonWidth, functionButtonHeight).build());
 
         this.addRenderableWidget(Button.builder(
-                Component.literal("主题"),
+                Component.literal(LanguageManager.getTranslation("simpleprogress.ui.theme")),
                 button -> switchTheme()
         ).pos(leftPos + 95, functionButtonY + 50).size(functionButtonWidth, functionButtonHeight).build());
 
         this.addRenderableWidget(Button.builder(
-                Component.literal("关闭"),
+                Component.literal(LanguageManager.getTranslation("simpleprogress.gui.close")),
                 button -> {
                     if (this.minecraft != null) {
                         this.minecraft.setScreen(null);
@@ -151,7 +149,15 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
                 }
         ).pos(leftPos + 165, functionButtonY + 50).size(70, functionButtonHeight).build());
 
-        // 加载玩家进度
+        this.addRenderableWidget(Button.builder(
+                Component.literal("🌐 " + LanguageManager.getLanguageDisplayName(LanguageManager.getCurrentLanguage())),
+                button -> {
+                    if (this.minecraft != null) {
+                        this.minecraft.setScreen(new LanguageSettingsScreen(this));
+                    }
+                }
+        ).pos(leftPos + 25, functionButtonY + 75).size(210, functionButtonHeight).build());
+
         reloadProgressList();
     }
 
@@ -164,7 +170,6 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
         }
     }
 
-    // 递归获取所有进度数量（包括子进度）
     private int getAllProgressCount(List<ProgressManager.CustomProgress> progresses) {
         int count = progresses.size();
         for (ProgressManager.CustomProgress progress : progresses) {
@@ -179,13 +184,11 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
         displayProgresses.clear();
 
         if (showSubProgress && selectedParentId != null) {
-            // 显示指定父进度的直接子进度
             ProgressManager.CustomProgress parentProgress = findProgressById(allProgresses, selectedParentId);
             if (parentProgress != null && parentProgress.subProgresses != null) {
                 displayProgresses.addAll(parentProgress.subProgresses);
             }
         } else {
-            // 显示所有顶级进度（没有父进度的进度）
             for (ProgressManager.CustomProgress progress : allProgresses) {
                 if (progress.parentId == null) {
                     displayProgresses.add(progress);
@@ -194,7 +197,6 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
         }
     }
 
-    // 递归查找进度
     private ProgressManager.CustomProgress findProgressById(List<ProgressManager.CustomProgress> progresses, String id) {
         for (ProgressManager.CustomProgress progress : progresses) {
             if (progress.id.equals(id)) {
@@ -208,18 +210,6 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             }
         }
         return null;
-    }
-
-    // 获取所有子进度的平铺列表（用于统计）
-    private List<ProgressManager.CustomProgress> getAllSubProgressesFlat(ProgressManager.CustomProgress parent) {
-        List<ProgressManager.CustomProgress> allSubs = new ArrayList<>();
-        if (parent.subProgresses != null) {
-            for (ProgressManager.CustomProgress sub : parent.subProgresses) {
-                allSubs.add(sub);
-                allSubs.addAll(getAllSubProgressesFlat(sub));
-            }
-        }
-        return allSubs;
     }
 
     private void updateTargetFieldHint() {
@@ -254,12 +244,12 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             String target = targetField.getValue().trim();
 
             if (title.isEmpty()) {
-                minecraft.player.displayClientMessage(Component.literal("§c请输入进度标题"), false);
+                minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.enter_title")), false);
                 return;
             }
 
             if (target.isEmpty()) {
-                minecraft.player.displayClientMessage(Component.literal("§c请输入目标ID"), false);
+                minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.enter_target")), false);
                 return;
             }
 
@@ -285,11 +275,11 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             countField.setValue("10");
             updateTargetFieldHint();
 
-            minecraft.player.displayClientMessage(Component.literal("§a进度添加成功!"), false);
+            minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.progress_added")), false);
 
         } catch (NumberFormatException e) {
             if (minecraft.player != null) {
-                minecraft.player.displayClientMessage(Component.literal("§c数量必须是有效的数字"), false);
+                minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.invalid_number")), false);
             }
         }
     }
@@ -298,7 +288,7 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
         if (minecraft == null || minecraft.player == null) return;
 
         if (selectedProgressIndex == -1) {
-            minecraft.player.displayClientMessage(Component.literal("§c请先选择一个父进度"), false);
+            minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.select_parent")), false);
             return;
         }
 
@@ -307,18 +297,18 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             String target = targetField.getValue().trim();
 
             if (title.isEmpty()) {
-                minecraft.player.displayClientMessage(Component.literal("§c请输入子进度标题"), false);
+                minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.enter_title")), false);
                 return;
             }
 
             if (target.isEmpty()) {
-                minecraft.player.displayClientMessage(Component.literal("§c请输入目标ID"), false);
+                minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.enter_target")), false);
                 return;
             }
 
             ProgressManager.CustomProgress parentProgress = getSelectedProgress();
             if (parentProgress == null) {
-                minecraft.player.displayClientMessage(Component.literal("§c选择的父进度无效"), false);
+                minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.invalid_parent")), false);
                 return;
             }
 
@@ -344,11 +334,11 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             countField.setValue("10");
             updateTargetFieldHint();
 
-            minecraft.player.displayClientMessage(Component.literal("§a子进度添加成功!"), false);
+            minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.subprogress_added")), false);
 
         } catch (NumberFormatException e) {
             if (minecraft.player != null) {
-                minecraft.player.displayClientMessage(Component.literal("§c数量必须是有效的数字"), false);
+                minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.invalid_number")), false);
             }
         }
     }
@@ -367,28 +357,25 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
                 ProgressManager.removeProgress(minecraft.player, selectedProgress.id);
                 reloadProgressList();
                 selectedProgressIndex = -1;
-                minecraft.player.displayClientMessage(Component.literal("§c进度已删除"), false);
+                minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.progress_deleted")), false);
             } else {
-                minecraft.player.displayClientMessage(Component.literal("§c请先选择一个进度"), false);
+                minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.select_progress")), false);
             }
         }
     }
 
     private void toggleSubProgressView() {
         if (showSubProgress) {
-            // 切换回显示全部进度
             showSubProgress = false;
             selectedParentId = null;
             selectedProgressIndex = -1;
             updateDisplayProgresses();
             if (minecraft != null && minecraft.player != null) {
-                minecraft.player.displayClientMessage(Component.literal("§a显示全部进度"), false);
+                minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.show_all")), false);
             }
         } else {
-            // 切换到显示子进度
             ProgressManager.CustomProgress selectedProgress = getSelectedProgress();
             if (selectedProgress != null) {
-                // 检查是否有子进度
                 boolean hasSubProgresses = selectedProgress.hasSubProgresses();
 
                 if (hasSubProgresses) {
@@ -397,16 +384,16 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
                     updateDisplayProgresses();
                     scrollOffset = 0;
                     if (minecraft != null && minecraft.player != null) {
-                        minecraft.player.displayClientMessage(Component.literal("§a显示子进度: " + selectedProgress.title), false);
+                        minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.show_subprogress", selectedProgress.title)), false);
                     }
                 } else {
                     if (minecraft != null && minecraft.player != null) {
-                        minecraft.player.displayClientMessage(Component.literal("§c所选进度没有子进度，请先添加子进度"), false);
+                        minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.no_subprogress")), false);
                     }
                 }
             } else {
                 if (minecraft != null && minecraft.player != null) {
-                    minecraft.player.displayClientMessage(Component.literal("§c请先选择一个父进度"), false);
+                    minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.select_parent")), false);
                 }
             }
         }
@@ -417,7 +404,7 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             confirmClear = true;
             clearConfirmTime = System.currentTimeMillis();
             if (minecraft != null && minecraft.player != null) {
-                minecraft.player.displayClientMessage(Component.literal("§c再次点击清除按钮确认清除所有进度"), false);
+                minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.confirm_clear")), false);
             }
         } else {
             confirmClear = false;
@@ -430,7 +417,7 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             ProgressManager.clearAllProgresses(minecraft.player);
             reloadProgressList();
             selectedProgressIndex = -1;
-            minecraft.player.displayClientMessage(Component.literal("§a已清除所有进度"), false);
+            minecraft.player.displayClientMessage(Component.literal(LanguageManager.getTranslation("simpleprogress.message.all_cleared")), false);
         }
     }
 
@@ -442,17 +429,13 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
 
     @Override
     protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        // 根据主题绘制背景
         int bgColor = getThemeBackgroundColor();
         guiGraphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + imageHeight, bgColor);
 
-        // 绘制标题区域背景
         guiGraphics.fill(leftPos, topPos, leftPos + imageWidth, topPos + 25, getThemeHeaderColor());
 
-        // 绘制左侧输入区域背景
         guiGraphics.fill(leftPos + 20, topPos + 25, leftPos + 240, topPos + imageHeight - 20, getThemePanelColor());
 
-        // 绘制右侧进度列表背景
         guiGraphics.fill(leftPos + 255, topPos + 25, leftPos + imageWidth - 20, topPos + imageHeight - 20, getThemePanelColor());
 
         if (showStatistics) {
@@ -468,37 +451,33 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
         try {
             ProgressManager.TreeChartData treeData = ProgressManager.getTreeChartData(minecraft.player);
 
-            // 绘制统计标题
-            guiGraphics.drawString(font, "§6进度树状图", leftPos + 260, topPos + 50, 0xFFFFFF, false);
+            guiGraphics.drawString(font, LanguageManager.getTranslation("simpleprogress.stats.tree_chart"), leftPos + 260, topPos + 50, 0xFFFFFF, false);
 
-            // 绘制总体统计信息
             ProgressManager.PlayerStats stats = ProgressManager.getPlayerStats(minecraft.player);
-            String completionRate = String.format("总完成率: §e%.1f%%", stats.getCompletionRate() * 100);
+            String completionRate = LanguageManager.getTranslation("simpleprogress.stats.completion_rate", stats.getCompletionRate() * 100);
             guiGraphics.drawString(font, completionRate, leftPos + 260, topPos + 65, 0xCCCCCC, false);
-            guiGraphics.drawString(font, "总进度数: §e" + stats.totalProgresses, leftPos + 260, topPos + 77, 0xCCCCCC, false);
-            guiGraphics.drawString(font, "已完成: §a" + stats.completedProgresses, leftPos + 260, topPos + 89, 0xCCCCCC, false);
-            guiGraphics.drawString(font, "进行中: §6" + (stats.totalProgresses - stats.completedProgresses), leftPos + 260, topPos + 101, 0xCCCCCC, false);
+            guiGraphics.drawString(font, LanguageManager.getTranslation("simpleprogress.stats.total_progress", stats.totalProgresses), leftPos + 260, topPos + 77, 0xCCCCCC, false);
+            guiGraphics.drawString(font, LanguageManager.getTranslation("simpleprogress.stats.completed", stats.completedProgresses), leftPos + 260, topPos + 89, 0xCCCCCC, false);
+            guiGraphics.drawString(font, LanguageManager.getTranslation("simpleprogress.stats.in_progress", (stats.totalProgresses - stats.completedProgresses)), leftPos + 260, topPos + 101, 0xCCCCCC, false);
 
-            // 绘制树状图
             int startY = topPos + 120;
             for (ProgressManager.TreeNode node : treeData.nodes) {
                 drawTreeNode(guiGraphics, node, leftPos + 260, startY, 0);
                 startY += 20;
-                if (startY > topPos + imageHeight - 30) break;
+                if (startY > topPos + imageHeight - 50) break;
             }
 
-            // 绘制清除按钮状态
             if (confirmClear) {
                 long timeLeft = 3000 - (System.currentTimeMillis() - clearConfirmTime);
                 if (timeLeft <= 0) {
                     confirmClear = false;
                 } else {
-                    String confirmText = "确认清除 (" + (timeLeft / 1000 + 1) + "s)";
-                    guiGraphics.drawString(font, "§c" + confirmText, leftPos + 260, topPos + 290, 0xFFFFFF, false);
+                    String confirmText = LanguageManager.getTranslation("simpleprogress.ui.confirm_clear", (timeLeft / 1000 + 1));
+                    guiGraphics.drawString(font, "§c" + confirmText, leftPos + 260, topPos + imageHeight - 60, 0xFFFFFF, false);
                 }
             }
         } catch (Exception e) {
-            guiGraphics.drawString(font, "§c统计界面加载失败", leftPos + 260, topPos + 50, 0xFFFFFF, false);
+            guiGraphics.drawString(font, LanguageManager.getTranslation("simpleprogress.message.stats_error"), leftPos + 260, topPos + 50, 0xFFFFFF, false);
             SimpleProgress.LOGGER.error("统计界面渲染错误: {}", e.getMessage());
         }
     }
@@ -507,23 +486,19 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
         int indent = depth * 15;
         int nodeX = x + indent;
 
-        // 绘制节点图标
         String icon = node.progress.completed ? "✓" : "○";
         int iconColor = node.progress.completed ? 0x00FF00 : 0xFFFFFF;
         guiGraphics.drawString(font, icon, nodeX, y, iconColor, false);
 
-        // 绘制进度标题
         String title = node.progress.type.getColorCode() + node.progress.title;
         if (font.width(title) > 150 - indent) {
             title = font.plainSubstrByWidth(title, 150 - indent) + "...";
         }
         guiGraphics.drawString(font, title, nodeX + 10, y, 0xFFFFFF, false);
 
-        // 绘制进度信息
         String info = "§7" + node.progress.current + "/" + node.progress.targetCount;
         guiGraphics.drawString(font, info, nodeX + 160 - indent, y, 0xCCCCCC, false);
 
-        // 绘制子节点
         int childY = y + 15;
         for (ProgressManager.TreeNode child : node.children) {
             drawTreeNode(guiGraphics, child, x, childY, depth + 1);
@@ -533,7 +508,7 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
 
     private void renderProgressList(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         int listStartY = topPos + 50;
-        int visibleSlots = 11;
+        int visibleSlots = 14;
         int listContentWidth = 220 - SCROLLBAR_WIDTH;
 
         for (int i = 0; i < visibleSlots; i++) {
@@ -543,16 +518,13 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             ProgressManager.CustomProgress progress = displayProgresses.get(listIndex);
             int entryY = listStartY + i * 22;
 
-            // 绘制进度条目背景
             int bgColor = (listIndex == selectedProgressIndex) ? 0x88666666 : 0x88555555;
             guiGraphics.fill(leftPos + 255, entryY, leftPos + 255 + listContentWidth, entryY + 20, bgColor);
 
-            // 绘制进度条
             int progressWidth = (int) (listContentWidth * progress.getProgress());
             int progressColor = progress.completed ? 0x88FFAA00 : getProgressColor(progress.type);
             guiGraphics.fill(leftPos + 255, entryY, leftPos + 255 + progressWidth, entryY + 20, progressColor);
 
-            // 绘制进度文本
             String prefix = progress.parentId != null ? "  ↳ " : "";
             String displayTitle = progress.type.getColorCode() + prefix + progress.title;
             int maxTextWidth = listContentWidth - 50;
@@ -563,54 +535,50 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
 
             guiGraphics.drawString(font, displayTitle, leftPos + 270, entryY + 6, 0xFFFFFF, false);
 
-            // 如果有子进度，显示子进度图标
             if (progress.hasSubProgresses()) {
                 guiGraphics.drawString(font, "📁", leftPos + 255 + listContentWidth - 40, entryY + 6, 0xFFFFFF, false);
             }
 
-            // 绘制进度数字
             String progressText = progress.current + "/" + progress.targetCount;
             int progressTextWidth = font.width(progressText);
             guiGraphics.drawString(font, progressText, leftPos + 255 + listContentWidth - progressTextWidth - 5, entryY + 6,
                     progress.completed ? 0x00FF00 : 0xFFFF00, false);
         }
 
-        // 绘制滚动条
         if (isContentScrollable()) {
             drawScrollbar(guiGraphics, mouseX, mouseY);
         }
     }
 
     private boolean isContentScrollable() {
-        return displayProgresses.size() > 11;
+        return displayProgresses.size() > 14;
     }
 
     private void drawScrollbar(GuiGraphics guiGraphics, int mouseX, int mouseY) {
         int scrollbarX = leftPos + 255 + (220 - SCROLLBAR_WIDTH);
         int scrollbarY = topPos + 50;
-        int scrollbarHeight = 11 * 22;
+        int scrollbarHeight = 14 * 22;
 
-        // 绘制滚动条背景
         guiGraphics.fill(scrollbarX, scrollbarY, scrollbarX + SCROLLBAR_WIDTH, scrollbarY + scrollbarHeight, 0xFF555555);
 
-        // 计算滚动条滑块
-        int visibleEntries = 11;
-        int scrollbarThumbHeight = Math.max(20, scrollbarHeight * visibleEntries / displayProgresses.size());
-        int maxScroll = Math.max(0, (displayProgresses.size() - visibleEntries) * 22);
-        int scrollProgress = maxScroll > 0 ? (int) ((float) scrollOffset / maxScroll * (scrollbarHeight - scrollbarThumbHeight)) : 0;
+        if (isContentScrollable()) {
+            int visibleEntries = 14;
+            int scrollbarThumbHeight = Math.max(20, scrollbarHeight * visibleEntries / displayProgresses.size());
+            int maxScroll = Math.max(0, (displayProgresses.size() - visibleEntries) * 22);
+            int scrollProgress = maxScroll > 0 ? (int) ((float) scrollOffset / maxScroll * (scrollbarHeight - scrollbarThumbHeight)) : 0;
 
-        int thumbY = scrollbarY + scrollProgress;
+            int thumbY = scrollbarY + scrollProgress;
 
-        // 绘制滚动条滑块
-        boolean isHovered = isMouseOverScrollbar(mouseX, mouseY);
-        int thumbColor = isHovered || isDraggingScroll ? 0xFF8888CC : 0xFF666699;
-        guiGraphics.fill(scrollbarX, thumbY, scrollbarX + SCROLLBAR_WIDTH, thumbY + scrollbarThumbHeight, thumbColor);
+            boolean isHovered = isMouseOverScrollbar(mouseX, mouseY);
+            int thumbColor = isHovered || isDraggingScroll ? 0xFF8888CC : 0xFF666699;
+            guiGraphics.fill(scrollbarX, thumbY, scrollbarX + SCROLLBAR_WIDTH, thumbY + scrollbarThumbHeight, thumbColor);
+        }
     }
 
     private boolean isMouseOverScrollbar(int mouseX, int mouseY) {
         int scrollbarX = leftPos + 255 + (220 - SCROLLBAR_WIDTH);
         int scrollbarY = topPos + 50;
-        int scrollbarHeight = 11 * 22;
+        int scrollbarHeight = 14 * 22;
 
         return mouseX >= scrollbarX &&
                 mouseX <= scrollbarX + SCROLLBAR_WIDTH &&
@@ -667,40 +635,36 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
 
     @Override
     protected void renderLabels(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        // 绘制标题
-        int titleX = (int) ((imageWidth - font.width("进度管理器")) / 2.0f);
-        guiGraphics.drawString(font, "进度管理器", titleX, 8, 0xFFFFFF, false);
+        String titleText = LanguageManager.getTranslation("simpleprogress.gui.progress_manager");
+        int titleX = (int) ((imageWidth - font.width(titleText)) / 2.0f);
+        guiGraphics.drawString(font, titleText, titleX, 8, 0xFFFFFF, false);
 
-        // 绘制左侧标签
-        guiGraphics.drawString(font, "类型:", 25, 32, 0xCCCCCC, false);
-        guiGraphics.drawString(font, "标题:", 25, 93, 0xCCCCCC, false);
-        guiGraphics.drawString(font, "目标:", 25, 128, 0xCCCCCC, false);
-        guiGraphics.drawString(font, "数量:", 25, 163, 0xCCCCCC, false);
+        guiGraphics.drawString(font, LanguageManager.getTranslation("simpleprogress.ui.type") + ":", 25, 32, 0xCCCCCC, false);
+        guiGraphics.drawString(font, LanguageManager.getTranslation("simpleprogress.ui.title") + ":", 25, 93, 0xCCCCCC, false);
+        guiGraphics.drawString(font, LanguageManager.getTranslation("simpleprogress.ui.target") + ":", 25, 128, 0xCCCCCC, false);
+        guiGraphics.drawString(font, LanguageManager.getTranslation("simpleprogress.ui.count") + ":", 25, 163, 0xCCCCCC, false);
 
-        // 绘制右侧标签
-        String listTitle = showStatistics ? "进度统计" :
-                showSubProgress ? "子进度列表 (" + displayProgresses.size() + ")" :
-                        "进度列表 (" + displayProgresses.size() + ")";
+        String listTitle = showStatistics ? LanguageManager.getTranslation("simpleprogress.ui.statistics") :
+                showSubProgress ? LanguageManager.getTranslation("simpleprogress.ui.subprogress_list", displayProgresses.size()) :
+                        LanguageManager.getTranslation("simpleprogress.ui.progress_list", displayProgresses.size());
         guiGraphics.drawString(font, listTitle, 270, 37, 0xFFFFFF, false);
 
-        // 绘制当前类型显示
-        String typeLabel = "当前类型: " + selectedType.getColorCode() + selectedType.getDisplayName();
+        String typeLabel = LanguageManager.getTranslation("simpleprogress.ui.current_type") + ": " + selectedType.getColorCode() + selectedType.getDisplayName();
         guiGraphics.drawString(font, typeLabel, 25, 205, 0xCCCCCC, false);
 
-        // 绘制当前主题显示
-        String themeLabel = "当前主题: " + getThemeDisplayName();
+        String themeLabel = LanguageManager.getTranslation("simpleprogress.ui.current_theme") + ": " + getThemeDisplayName();
         guiGraphics.drawString(font, themeLabel, 25, 220, 0xCCCCCC, false);
     }
 
     private String getThemeDisplayName() {
         switch(currentTheme) {
-            case 0: return "默认";
-            case 1: return "暗色";
-            case 2: return "亮色";
-            case 3: return "绿色";
-            case 4: return "蓝色";
-            case 5: return "紫色";
-            default: return "默认";
+            case 0: return LanguageManager.getTranslation("simpleprogress.theme.default");
+            case 1: return LanguageManager.getTranslation("simpleprogress.theme.dark");
+            case 2: return LanguageManager.getTranslation("simpleprogress.theme.light");
+            case 3: return LanguageManager.getTranslation("simpleprogress.theme.green");
+            case 4: return LanguageManager.getTranslation("simpleprogress.theme.blue");
+            case 5: return LanguageManager.getTranslation("simpleprogress.theme.purple");
+            default: return LanguageManager.getTranslation("simpleprogress.theme.default");
         }
     }
 
@@ -716,16 +680,14 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
     }
 
     private void renderTooltips(GuiGraphics guiGraphics, int mouseX, int mouseY) {
-        // 简化的工具提示
         if (isMouseOver(mouseX, mouseY, leftPos + 25, topPos + 128, 180, 18)) {
             String hint = getTargetFieldHint();
             guiGraphics.renderTooltip(font, Component.literal(hint), mouseX, mouseY);
         }
 
-        // 进度条目工具提示
         if (!showStatistics) {
             int listStartY = topPos + 50;
-            for (int i = 0; i < 11; i++) {
+            for (int i = 0; i < 14; i++) {
                 int listIndex = i + scrollOffset;
                 if (listIndex >= displayProgresses.size()) break;
 
@@ -735,14 +697,14 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
                 if (isMouseOver(mouseX, mouseY, leftPos + 255, entryY, 220 - SCROLLBAR_WIDTH, 20)) {
                     List<Component> tooltip = new ArrayList<>();
                     tooltip.add(Component.literal(progress.type.getColorCode() + "【" + progress.type.getDisplayName() + "】" + progress.title));
-                    tooltip.add(Component.literal("§7目标: §e" + progress.target));
-                    tooltip.add(Component.literal("§7进度: §e" + progress.current + "§7/§e" + progress.targetCount));
-                    tooltip.add(Component.literal("§7完成度: §e" + String.format("%.1f", progress.getProgress() * 100) + "%"));
+                    tooltip.add(Component.literal("§7" + LanguageManager.getTranslation("simpleprogress.ui.target") + ": §e" + progress.target));
+                    tooltip.add(Component.literal("§7" + LanguageManager.getTranslation("simpleprogress.ui.progress") + ": §e" + progress.current + "§7/§e" + progress.targetCount));
+                    tooltip.add(Component.literal("§7" + LanguageManager.getTranslation("simpleprogress.ui.completion") + ": §e" + String.format("%.1f", progress.getProgress() * 100) + "%"));
                     if (progress.hasSubProgresses()) {
-                        tooltip.add(Component.literal("§7子进度数量: §e" + progress.subProgresses.size()));
+                        tooltip.add(Component.literal("§7" + LanguageManager.getTranslation("simpleprogress.ui.subprogress_count") + ": §e" + progress.subProgresses.size()));
                     }
                     if (!progress.completed) {
-                        tooltip.add(Component.literal("§7预估剩余时间: §e" + progress.getEstimatedTime()));
+                        tooltip.add(Component.literal("§7" + LanguageManager.getTranslation("simpleprogress.ui.estimated_time") + ": §e" + progress.getEstimatedTime()));
                     }
                     guiGraphics.renderComponentTooltip(font, tooltip, mouseX, mouseY);
                     break;
@@ -753,12 +715,12 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
 
     private String getTargetFieldHint() {
         switch(selectedType) {
-            case KILL: return "§e输入生物ID\n§7例如: minecraft:zombie";
-            case OBTAIN: return "§e输入物品ID\n§7例如: minecraft:diamond";
-            case EXPLORE: return "§e输入维度ID\n§7例如: minecraft:the_nether";
-            case BUILD: return "§e输入方块ID\n§7例如: minecraft:dirt";
-            case ENCHANT: return "§e输入附魔ID\n§7例如: minecraft:sharpness";
-            default: return "§e输入目标ID";
+            case KILL: return LanguageManager.getTranslation("simpleprogress.hint.kill");
+            case OBTAIN: return LanguageManager.getTranslation("simpleprogress.hint.obtain");
+            case EXPLORE: return LanguageManager.getTranslation("simpleprogress.hint.explore");
+            case BUILD: return LanguageManager.getTranslation("simpleprogress.hint.build");
+            case ENCHANT: return LanguageManager.getTranslation("simpleprogress.hint.enchant");
+            default: return LanguageManager.getTranslation("simpleprogress.hint.general");
         }
     }
 
@@ -768,8 +730,8 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
             isDraggingScroll = true;
 
             int scrollbarY = topPos + 50;
-            int scrollbarHeight = 11 * 22;
-            int maxScroll = Math.max(0, (displayProgresses.size() - 11) * 22);
+            int scrollbarHeight = 14 * 22;
+            int maxScroll = Math.max(0, (displayProgresses.size() - 14) * 22);
 
             double scrollPercent = (mouseY - scrollbarY) / (double)scrollbarHeight;
             scrollOffset = (int)(maxScroll * Math.max(0, Math.min(1, scrollPercent)));
@@ -778,7 +740,7 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
         }
 
         int listStartY = topPos + 50;
-        for (int i = 0; i < 11; i++) {
+        for (int i = 0; i < 14; i++) {
             int listIndex = i + scrollOffset;
             if (listIndex >= displayProgresses.size()) break;
 
@@ -807,8 +769,8 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
     public boolean mouseDragged(double mouseX, double mouseY, int button, double dragX, double dragY) {
         if (isDraggingScroll) {
             int scrollbarY = topPos + 50;
-            int scrollbarHeight = 11 * 22;
-            int maxScroll = Math.max(0, (displayProgresses.size() - 11) * 22);
+            int scrollbarHeight = 14 * 22;
+            int maxScroll = Math.max(0, (displayProgresses.size() - 14) * 22);
 
             double scrollPercent = (mouseY - scrollbarY) / (double)scrollbarHeight;
             scrollOffset = (int)(maxScroll * Math.max(0, Math.min(1, scrollPercent)));
@@ -820,7 +782,7 @@ public class ProgressJournalScreen extends AbstractContainerScreen<ProgressJourn
     @Override
     public boolean mouseScrolled(double mouseX, double mouseY, double delta) {
         if (isMouseOver(mouseX, mouseY, leftPos + 250, topPos + 25, 230, 280)) {
-            int maxScroll = Math.max(0, displayProgresses.size() - 11);
+            int maxScroll = Math.max(0, displayProgresses.size() - 14);
             if (delta > 0) {
                 if (scrollOffset > 0) scrollOffset--;
             } else if (delta < 0) {
