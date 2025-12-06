@@ -2,8 +2,8 @@ Manifest-Version: 1.0
 Specification-Title: simpleprogress
 Specification-Vendor: 澜澈(LanChe)
 Specification-Version: 1
-Implementation-Title: forge-1.20.1-47.4.0-mdk
+Implementation-Title: simpleprogress-forge-1.20.1
 Implementation-Version: 1.0.4
 Implementation-Vendor: 澜澈(LanChe)
-Implementation-Timestamp: 2025-11-21T23:11:16+0800
+Implementation-Timestamp: 2025-11-30T12:38:10+0800
 
