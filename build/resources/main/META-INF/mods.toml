@@ -1,25 +1,31 @@
 modLoader="javafml"
 loaderVersion="[47,)"
 license="MIT"
+issueTrackerURL="https://github.com/lanche-mc/simpleprogress/issues"
+showAsResourcePack=false
 
 [[mods]]
-modId="simpleprogress"
-version="1.0.4"
-displayName="Simple Progress"
-description="A GUI-based custom progress management mod with full language support"
-authors="澜澈LanChe"
-displayURL="lanche.vvvv.host"
+modId="simpleprogress_tracker"
+version="1.0.5"
+displayName="Simple Progress Tracker"
+logoFile="assets/simpleprogress/icon.png"
+credits="LanChe"
+authors="LanChe"
+description='''
+A lightweight command-based progress tracking mod for Minecraft.
+Track your goals with simple commands!
+'''
 
-[[dependencies.simpleprogress]]
+[[dependencies.simpleprogress_tracker]]
 modId="forge"
-versionRange="[47.4.0,)"
 mandatory=true
-order="AFTER"
+versionRange="[47.2.0,)"
+ordering="NONE"
 side="BOTH"
 
-[[dependencies.simpleprogress]]
+[[dependencies.simpleprogress_tracker]]
 modId="minecraft"
-versionRange="[1.20.1,1.21)"
 mandatory=true
-order="AFTER"
+versionRange="[1.20.1,1.21)"
+ordering="NONE"
 side="BOTH"
